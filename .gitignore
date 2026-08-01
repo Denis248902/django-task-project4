@@ -1,0 +1,21 @@
+# Django
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Backup files from sed
+*.bak
+
+# SQLite DB
+db.sqlite3
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# IDE / editor
+.idea/
+.vscode/
+*.swp
+*.swo
