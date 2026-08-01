@@ -18,21 +18,45 @@ if [ -z "$ACCESS_TOKEN" ]; then
 fi
 echo "✅ Токен получен."
 
+# Создаём JSON‑файл с данными (чтобы не ломать кавычки в Bash)
+TMP_DATA=$(mktemp)
+cat > "$TMP_DATA" << 'JSON_DATA'
+{
+  "title": "Подарок на день рождения",
+  "reason": "birthday",
+  "description": "Собираем на подарок Ирине",
+  "target_amount": 10000,
+  "deadline": "2026-08-15T18:00:00"
+}
+JSON_DATA
+
 echo "📦 Создаём тестовый сбор..."
 COLLECT_RESPONSE=$(curl -s -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{
-    "title": "Подарок на день рождения",
-    "reason": "birthday",
-    "description": "Собираем на подарок Ирине",
-    "target_amount": 10000,
-    "deadline": "2026-08-15T18:00:00"
-  }' \
+  --data-binary "@$TMP_DATA" \
   "$API_URL/api/collects/")
 
-COLLECT_ID=$(echo "$COLLECT_RESPONSE" | python -c "import sys, json; data=json.load(sys.stdin); print(data['id'])")
+# Удаляем временный файл
+rm -f "$TMP_DATA"
+
+# Пытаемся вытащить ID, но сначала проверяем, нет ли ошибки
+if echo "$COLLECT_RESPONSE" | grep -q '"detail"'; then
+  echo "❌ Ошибка при создании сбора. Ответ сервера:"
+  echo "$COLLECT_RESPONSE"
+  exit 1
+fi
+
+COLLECT_ID=$(echo "$COLLECT_RESPONSE" | python -c "import sys, json; data=json.load(sys.stdin); print(data.get('id'))")
+
+if [ -z "$COLLECT_ID" ]; then
+  echo "❌ Не удалось получить ID сбора. Полный ответ:"
+  echo "$COLLECT_RESPONSE"
+  exit 1
+fi
+
 echo "✅ Сбор создан, ID=$COLLECT_ID"
 
+# Платежи
 echo "💸 Создаём платежи..."
 curl -s -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H "Content-Type: application/json" \
@@ -46,7 +70,7 @@ curl -s -H "Authorization: Bearer $ACCESS_TOKEN" \
 
 echo "✅ Платежи созданы."
 
-echo "👀 Проверяем список сборов (current_amount должен быть 4000):"
+echo "👀 Проверяем список сборов:"
 curl -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H "Accept: application/json" \
   "$API_URL/api/collects/"
