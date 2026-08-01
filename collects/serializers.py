@@ -9,12 +9,11 @@ class PaymentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Payment
         fields = ["id", "collect", "user", "user_name", "amount", "paid_at"]
-        read_only_fields = ["paid_at", "user"]
+        read_only_fields = ["paid_at"]
 
 
 class CollectSerializer(serializers.ModelSerializer):
     author_name = serializers.ReadOnlyField(source="author.username")
-    current_amount = serializers.ReadOnlyField()
     payments = PaymentSerializer(many=True, read_only=True)
     cover_image_url = serializers.SerializerMethodField()
 
@@ -38,6 +37,6 @@ class CollectSerializer(serializers.ModelSerializer):
         read_only_fields = ["author", "current_amount", "created_at"]
 
     def get_cover_image_url(self, obj):
-        if obj.cover_image:
+        if obj.cover_image and hasattr(obj.cover_image, "url"):
             return obj.cover_image.url
         return None
