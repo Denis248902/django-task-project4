@@ -1,7 +1,10 @@
-from django.contrib.auth.models import User
-from collects.models import Collect, Payment
-from django.utils import timezone
 from datetime import timedelta
+
+from django.contrib.auth.models import User
+from django.utils import timezone
+
+from collects.models import Collect, Payment
+
 
 def run():
     # Берём любого пользователя как автора (лучше не viewer, а staff)
@@ -33,5 +36,6 @@ def run():
 
     print(f"✅ Создано {len(collects)} сборов и {2 * len(collects)} платежей.")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     run()

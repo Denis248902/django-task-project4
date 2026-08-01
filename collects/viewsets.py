@@ -1,33 +1,30 @@
-from rest_framework import viewsets, filters
-from django_filters.rest_framework import DjangoFilterBackend
-from .models import Collect, Payment
-from .serializers import CollectSerializer, PaymentSerializer
-from .permissions import IsAuthorOrReadOnly
+from django.shortcuts import get_object_or_404
+from rest_framework import permissions, viewsets
+
+from collects.models import Collect, Payment
+from collects.serializers import CollectSerializer, PaymentSerializer
+
 
 class CollectViewSet(viewsets.ModelViewSet):
-    queryset = Collect.objects.all().order_by("-created_at")
+    queryset = Collect.objects.all()
     serializer_class = CollectSerializer
-    permission_classes = [IsAuthorOrReadOnly]
-    filter_backends = [DjangoFilterBackend, filters.OrderingFilter, filters.SearchFilter]
-    filterset_fields = ["reason", "author"]
-    ordering_fields = ["deadline", "target_amount", "current_amount"]
-    search_fields = ["title", "description"]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
 
 class PaymentViewSet(viewsets.ModelViewSet):
-    queryset = Payment.objects.all().order_by("-paid_at")
+    queryset = Payment.objects.all()
     serializer_class = PaymentSerializer
-    # Платёж может создавать любой авторизованный пользователь
-    permission_classes = []
+    permission_classes = [permissions.IsAuthenticated]
 
     def perform_create(self, serializer):
-        collect = serializer.validated_data["collect"]
-        amount = serializer.validated_data["amount"]
-        payment = serializer.save(user=self.request.user)
-        # Бизнес‑логика: обновляем current_amount у сбора
-        collect.current_amount += amount
+        collect_id = self.request.data.get("collect")
+        collect = get_object_or_404(Collect, id=collect_id)
+        user = self.request.user
+
+        payment = serializer.save(user=user)
+        collect.current_amount += payment.amount
         collect.save(update_fields=["current_amount"])
         return payment

@@ -1,9 +1,11 @@
-from django.core.management.base import BaseCommand
-from django.contrib.auth.models import User
-from collects.models import Collect, Payment
-from django.utils import timezone
-from django.db.models import Sum
 from decimal import Decimal
+
+from django.contrib.auth.models import User
+from django.core.management.base import BaseCommand
+from django.db.models import Sum
+from django.utils import timezone
+
+from collects.models import Collect, Payment
 
 
 class Command(BaseCommand):
