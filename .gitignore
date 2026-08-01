@@ -3,10 +3,10 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# Backup files from sed
+# Backup files from sed/ed
 *.bak
 
-# SQLite DB
+# SQLite DB (не коммитим базу!)
 db.sqlite3
 
 # Virtual environments
