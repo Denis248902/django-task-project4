@@ -1,15 +1,11 @@
-from django.urls import include, path
+from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-
-from collects.viewsets import CollectViewSet
+from .views import EmployeeProfileViewSet, PaymentViewSet  # PaymentViewSet обязательно импортирован
 
 router = DefaultRouter()
-router.register(r"collects", CollectViewSet, basename="collect")
+router.register(r'employees', EmployeeProfileViewSet)
+router.register(r'payments', PaymentViewSet)  # ЭТА СТРОКА ОБЯЗАТЕЛЬНА
 
 urlpatterns = [
-    # Эндпоинты Djoser: регистрация, логин, токены и т.д.
-    path("", include("djoser.urls")),
-    path("auth/", include("djoser.urls.jwt")),
-    # Твои ресурсы (collects, payments)
-    path("", include(router.urls)),
+    path('', include(router.urls)),
 ]
